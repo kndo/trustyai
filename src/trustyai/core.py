@@ -1,7 +1,11 @@
 import re
-from google import genai
-from .prompts import SELF_REFLECTION_CERTAINTY_PROMPT_1, SELF_REFLECTION_CERTAINTY_PROMPT_2
 
+from google import genai
+
+from .prompts import (
+    SELF_REFLECTION_CERTAINTY_PROMPT_1,
+    SELF_REFLECTION_CERTAINTY_PROMPT_2,
+)
 
 SUPPORTED_GEMINI_MODELS = ["gemini-2.5-pro", "gemini-2.5-flash"]
 SELF_REFLECTION_CERTAINTY_SCORE = {
@@ -10,15 +14,17 @@ SELF_REFLECTION_CERTAINTY_SCORE = {
     "C": 0.5,
 }
 
-class TrustyAI:
 
-    def __init__(self, provider: str, model: str, api_key: str) -> None:
+class TrustyAI:
+    def __init__(self, *, provider: str, model: str, api_key: str) -> None:
         if provider != "gemini":
             # NOTE: Could create a specific exception, e.g. `UnsupportedLLMProvider`
             raise ValueError(f"Unsupported provider: {provider}. Supported providers include: gemini")
 
         if model not in SUPPORTED_GEMINI_MODELS:
-            raise ValueError(f"Unsupported model: {model}. Supported models include: {", ".join(SUPPORTED_GEMINI_MODELS)}")
+            raise ValueError(
+                f"Unsupported model: {model}. Supported models include: {', '.join(SUPPORTED_GEMINI_MODELS)}"
+            )
 
         # NOTE: When more providers are supported, we only need to check if the
         # specified model is supported for the specified provider, not for all
@@ -33,7 +39,7 @@ class TrustyAI:
 
         self.SELF_REFLECTION_CERTAINTY_ANSWER_PATTERN = re.compile(r".*answer: (?P<answer>[ABC])$")
 
-    def ask(self, question: str, calc_self_reflection_certainty: bool = True):
+    def ask(self, question: str, calc_confidence_score: bool = True):
         if self.provider == "gemini":
             response = self.client.models.generate_content(
                 model=self.model,
@@ -41,16 +47,21 @@ class TrustyAI:
             )
             answer = response.text
 
-        self_reflection_certainty = None
-        if calc_self_reflection_certainty:
+        confidence_score = None
+        if calc_confidence_score:
             self_reflection_certainty = self.calc_self_reflection_certainty(question, answer)
+            # For simplicity, we are taking the overall confidence score as just
+            # the self-reflection certainty score. TODO: Calculate the observed
+            # consistency score as well and use it to determine the overall
+            # confidence score.
+            confidence_score = self_reflection_certainty
 
-        return AskResponse(question, answer, self_reflection_certainty)
-
+        return AskResponse(question, answer, confidence_score)
 
     def calc_self_reflection_certainty(self, question: str, answer) -> float | None:
         """
-        Calculates the self-reflection certainty score as defined by Chen et al.
+        Calculates the self-reflection certainty score as defined by
+        Chen et al., 2023.
 
         Ref: https://arxiv.org/pdf/2308.16175
         """
@@ -85,12 +96,12 @@ class TrustyAI:
 
 
 class AskResponse:
-
-    def __init__(self,
+    def __init__(
+        self,
         question: str,
         answer: str,
-        self_reflection_certainty: float | None = None,
+        confidence_score: float | None = None,
     ) -> None:
         self.question = question
         self.answer = answer
-        self.self_reflection_certainty = self_reflection_certainty
+        self.confidence_score = confidence_score

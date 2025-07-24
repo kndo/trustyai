@@ -6,6 +6,7 @@ SELF_REFLECTION_CERTAINTY_PROMPT_1 = """
     brackets]
 """
 
+
 SELF_REFLECTION_CERTAINTY_PROMPT_2 = """
     Question: [{question}], Proposed Answer: [{answer}]. Are you really sure the
     proposed answer is correct? Choose again: (A) Correct (B) Incorrect (C) I am
