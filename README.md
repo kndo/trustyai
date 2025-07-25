@@ -33,13 +33,14 @@ python client.py
 ```
 Note that the example uses Google Gemini as the LLM provider and
 `gemini-2.5-flash` for the model. Therefore, you must [obtain a Gemini API
-key](https://ai.google.dev/gemini-api/docs/api-key) an set it as an environment
+key](https://ai.google.dev/gemini-api/docs/api-key) and set it as an environment
 variable (`GEMINI_API_KEY`).
 
 The library can be readily extended to integrate with OpenAI, Claude, etc.
 
 5. Run tests
 ```bash
+pip install .[dev]  # to install pytest
 pytest tests/
 ```
 

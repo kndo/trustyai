@@ -40,6 +40,9 @@ class TrustyAI:
         self.SELF_REFLECTION_CERTAINTY_ANSWER_PATTERN = re.compile(r".*answer: (?P<answer>[ABC])$")
 
     def ask(self, question: str, calc_confidence_score: bool = True):
+        # NOTE: We could create a wrapper over the LLM provider so that we don't
+        # have to keep checking which provider it is everywhere. Beyond the
+        # scope of this assignment.
         if self.provider == "gemini":
             response = self.client.models.generate_content(
                 model=self.model,
